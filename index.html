@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c1c30">
+  <title>Central de Comunicações | BVA</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <a class="brand" href="#dashboard" aria-label="Dashboard BVA">
+        <div class="brand-mark">BVA</div>
+        <div><strong>Central de Comunicações</strong><span>Bombeiros Voluntários da Amadora</span></div>
+      </a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a href="#dashboard" data-route="dashboard">Ecrã central</a>
+        <a href="#admin" data-route="admin">Backoffice</a>
+      </nav>
+      <div class="top-meta"><span class="live-dot"></span><span>Informação operacional</span><time id="header-clock"></time></div>
+    </header>
+
+    <main id="dashboard-view" class="dashboard-view">
+      <section class="welcome-row">
+        <div><p class="eyebrow">Painel de situação</p><h1>Informação operacional</h1><p class="subhead">Constrangimentos hospitalares e estado de prontidão da sub-região.</p></div>
+        <div class="dashboard-utilities"><div class="dashboard-clock"><time id="dashboard-clock">--:--:--</time><span id="dashboard-date"></span></div><div class="refresh-pill"><span class="live-dot"></span>Atualização automática <b>ativa</b></div></div>
+      </section>
+
+      <section class="readiness-card" id="readiness-card" aria-live="polite"></section>
+
+      <section class="weather-card" aria-label="Previsão meteorológica para a Amadora"><div class="weather-head"><div><p class="eyebrow">Meteorologia local</p><h2>Amadora <span>· agora e próximas 3 horas</span></h2></div><div class="weather-updated" id="weather-updated">A obter previsão…</div></div><div id="weather-forecast" class="weather-grid" aria-live="polite"><div class="weather-loading">A carregar previsão horária…</div></div></section>
+
+      <section class="section-heading"><div><p class="eyebrow">Rede hospitalar</p><h2>Constrangimentos hospitalares</h2></div><div class="count-chip" id="constraint-count"></div></section>
+      <section id="constraint-list" class="constraint-grid" aria-live="polite"></section>
+
+      <section class="notice-card">
+        <div class="notice-icon">i</div><div class="notice-content"><p class="eyebrow">Informação permanente</p><h2>Avisos operacionais</h2><div id="notices-list"></div></div>
+      </section>
+      <footer class="dashboard-footer"><span>Associação Humanitária de Bombeiros Voluntários da Amadora</span><span>Informação inserida pela Central de Comunicações <i>•</i> <b id="updated-at"></b></span></footer>
+    </main>
+
+    <main id="admin-view" class="admin-view hidden">
+      <section class="admin-intro"><div><p class="eyebrow">Gestão da informação</p><h1>Backoffice</h1><p class="subhead">Registe a informação recebida e deixe o painel atualizar-se pelo horário definido.</p></div><a class="button button-dark" href="#dashboard">Ver ecrã central <span>↗</span></a></section>
+      <div class="admin-tabs" role="tablist"><button class="admin-tab active" data-tab="constraints">Constrangimentos <span id="admin-count">0</span></button><button class="admin-tab" data-tab="readiness">Prontidão especial</button><button class="admin-tab" data-tab="notices">Avisos operacionais</button></div>
+      <section id="constraints-panel" class="admin-panel">
+        <div class="panel-heading"><div><h2>Constrangimentos</h2><p>O registo aparece no ecrã uma hora antes do início e sai automaticamente à hora de fim.</p></div><button class="button button-primary" id="add-constraint">＋ Novo constrangimento</button></div>
+        <div id="admin-constraints" class="admin-list"></div>
+      </section>
+      <section id="readiness-panel" class="admin-panel hidden">
+        <div class="panel-heading"><div><h2>Estado de prontidão</h2><p>Programe o nível decretado pela ANEPC para a sub-região, com período de validade.</p></div><button class="button button-primary" id="add-readiness">＋ Programar estado</button></div>
+        <div id="admin-readiness" class="admin-list"></div>
+      </section>
+      <section id="notices-panel" class="admin-panel hidden">
+        <div class="panel-heading"><div><h2>Avisos operacionais</h2><p>Informação de referência apresentada permanentemente no ecrã central.</p></div><button class="button button-primary" id="add-notice">＋ Novo aviso</button></div>
+        <div id="admin-notices" class="admin-list"></div>
+      </section>
+      <aside class="prototype-note"><span>ⓘ</span><p><strong>Regra de acesso definida</strong><br>Todos os utilizadores autenticam-se para consultar; só a Central e os utilizadores autorizados podem editar. Esta demonstração guarda os dados apenas neste navegador. Para sincronizar com os portáteis iTeams, é necessária uma base de dados online e autenticação real.</p></aside>
+    </main>
+  </div>
+
+  <dialog id="record-dialog">
+    <form id="record-form" method="dialog">
+      <div class="dialog-head"><div><p class="eyebrow" id="dialog-eyebrow">Novo registo</p><h2 id="dialog-title">Constrangimento hospitalar</h2></div><button type="button" class="icon-button" id="close-dialog" aria-label="Fechar">×</button></div>
+      <div id="constraint-fields" class="form-fields">
+        <label>Hospital
+          <select name="hospital" id="hospital-select" required>
+            <option value="" disabled selected>Selecionar hospital</option>
+            <option>Hospital Amadora-Sintra</option><option>Hospital de São José</option><option>Hospital Fernando Fonseca</option><option>Hospital de Santa Maria</option><option>Hospital de São Francisco Xavier</option><option>Hospital de Loures</option><option value="Outro">Outro…</option>
+          </select>
+          <input name="hospitalOther" id="hospital-other" class="other-field hidden" placeholder="Indicar hospital" disabled>
+        </label>
+        <label>Serviço
+          <select name="service" id="service-select" required>
+            <option value="" disabled selected>Selecionar serviço</option>
+            <option>Urgência Geral</option><option>Urgência de Obstetrícia / Bloco de Partos</option><option>Urgência Pediátrica</option><option>Urgência de Ginecologia</option><option>Urgência de Oftalmologia</option><option>Urgência de Ortopedia</option><option>Serviço de Imagiologia</option><option>Pediatria</option><option>Outro</option>
+          </select>
+          <input name="serviceOther" id="service-other" class="other-field hidden" placeholder="Indicar serviço" disabled>
+        </label>
+        <div class="form-row"><label>Início<input name="start" type="datetime-local" required></label><label>Fim<input name="end" type="datetime-local" required></label></div>
+        <label>Detalhe (opcional)<textarea name="detail" rows="3" placeholder="Indicações relevantes para as equipas"></textarea></label>
+      </div>
+      <div id="readiness-fields" class="form-fields hidden">
+        <label>Nível / estado
+          <select name="level" required>
+            <option value="normal">Normal</option><option value="i">Especial — Nível I</option><option value="ii">Especial — Nível II</option><option value="iii">Especial — Nível III</option><option value="iv">Especial — Nível IV</option>
+          </select>
+        </label>
+        <label>Sub-região<input name="region" value="Lisboa" required></label>
+        <div class="form-row"><label>Início<input name="start" type="datetime-local" required></label><label>Fim<input name="end" type="datetime-local" required></label></div>
+        <label>Nota (opcional)<textarea name="detail" rows="3" placeholder="Referência / observação operacional"></textarea></label>
+      </div>
+      <div id="notice-fields" class="form-fields hidden"><label>Título<input name="title" required placeholder="Ex.: Hospital Amadora-Sintra"></label><label>Informação<textarea name="text" rows="5" required placeholder="Escreva o aviso a apresentar"></textarea></label></div>
+      <div class="dialog-actions"><button type="button" class="button button-light" id="cancel-dialog">Cancelar</button><button type="submit" class="button button-primary">Guardar registo</button></div>
+    </form>
+  </dialog>
+  <script src="app.js"></script>
+</body>
+</html>
