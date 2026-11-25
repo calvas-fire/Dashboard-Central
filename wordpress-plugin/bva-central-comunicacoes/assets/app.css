@@ -15,3 +15,29 @@
 #app .catalog-list li span{min-width:0;overflow-wrap:anywhere}
 #app .catalog-list .catalog-empty{justify-content:center;color:#8290a0;border-style:dashed}
 @media(max-width:700px){#app .catalog-columns{grid-template-columns:1fr}#app .catalog-add{flex-direction:column}#app .catalog-add .button{align-self:flex-start}}
+#app .topbar{background:var(--brand-header-bg);color:var(--brand-header-text)}
+#app .brand-mark{padding:3px;overflow:hidden}
+#app .brand-mark img{display:block;width:100%;height:100%;object-fit:contain}
+#app .brand strong{color:var(--brand-header-text)}
+#app .brand span,#app .main-nav a,#app .top-meta{color:var(--brand-header-muted)}
+#app .main-nav a.active{color:var(--brand-header-text);border-color:var(--brand-accent)}
+#app .top-meta time{color:var(--brand-header-text)}
+#app .admin-tab.active{color:var(--brand-accent);border-color:var(--brand-accent)}
+#app .button-primary{background:var(--brand-accent)}
+#app .branding-layout{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(300px,1.2fr);gap:16px;max-width:900px}
+#app .branding-card{display:grid;align-content:start;gap:12px}
+#app .branding-card h3{margin:0}
+#app .branding-card>label{display:grid;gap:6px;font-size:11px;font-weight:700;color:#53647a}
+#app .branding-card input[type=text]{width:100%;border:1px solid #dce3eb;border-radius:7px;padding:10px 11px;font:12px 'DM Sans',sans-serif;color:#24364c}
+#app .branding-card input:focus{outline:2px solid #2157c620;border-color:#6e91db}
+#app .branding-card input[type=color]{width:100%;height:38px;padding:3px;border:1px solid #dce3eb;border-radius:7px;background:white;cursor:pointer}
+#app .branding-logo-preview{min-height:100px;border:1px dashed #ccd5df;border-radius:9px;display:grid;place-items:center;padding:12px;color:#8290a0;font-size:11px;background:#f8fafc}
+#app .branding-logo-preview img{max-width:100%;max-height:100px;object-fit:contain}
+#app .branding-file-label{display:inline-flex!important;justify-self:start;border:1px solid var(--line);background:#fff;color:#53647a!important;border-radius:7px;padding:9px 11px;cursor:pointer}
+#app .branding-file-label input{max-width:100%;font-size:10px}
+#app .branding-help{margin:0;color:#77869a;font-size:10px;line-height:1.5}
+#app .branding-actions{display:flex;gap:8px;flex-wrap:wrap}
+#app .branding-colors-title{margin-top:8px!important}
+#app .branding-color-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#app .branding-color-grid label{display:grid;gap:5px;font-size:10px;font-weight:700;color:#53647a}
+@media(max-width:700px){#app .branding-layout{grid-template-columns:1fr}#app .branding-color-grid{grid-template-columns:1fr 1fr}}
