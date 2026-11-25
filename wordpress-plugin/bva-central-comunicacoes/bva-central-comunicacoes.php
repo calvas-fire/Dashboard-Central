@@ -2,17 +2,19 @@
 /**
  * Plugin Name: Central de Comunicações BVA
  * Description: Dashboard autenticado para constrangimentos hospitalares, prontidão especial e avisos operacionais.
- * Version: 0.2.0
+ * Version: 0.2.1
  * Requires at least: 6.2
  * Requires PHP: 8.0
  * Author: Bombeiros Voluntários da Amadora
- * Text Domain: bva-central
+ * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: bva-central-comunicacoes
  */
 
 if (!defined('ABSPATH')) { exit; }
 
 final class BVA_Central_Comunicacoes {
-    const VERSION = '0.2.0';
+    const VERSION = '0.2.1';
     const CAPABILITY = 'edit_bva_central';
     const REST_NAMESPACE = 'bva-central/v1';
 
@@ -153,7 +155,7 @@ final class BVA_Central_Comunicacoes {
 
     public static function get_records() {
         global $wpdb;
-        $items = $wpdb->get_results('SELECT id, record_type, record_data, modified_at FROM ' . self::table_name() . ' ORDER BY starts_at ASC, id ASC', ARRAY_A);
+        $items = $wpdb->get_results($wpdb->prepare('SELECT id, record_type, record_data, modified_at FROM %i ORDER BY starts_at ASC, id ASC', self::table_name()), ARRAY_A);
         $records = array('constraints' => array(), 'readiness' => array(), 'notices' => array(), 'updatedAt' => null);
         $latest_timestamp = 0;
         foreach ($items as $item) {
@@ -240,7 +242,7 @@ final class BVA_Central_Comunicacoes {
         $type = sanitize_key($params['type'] ?? '');
         $clean = self::clean_record($type, $params['row'] ?? null);
         if (is_wp_error($clean)) { return $clean; }
-        $exists = $wpdb->get_var($wpdb->prepare('SELECT id FROM ' . self::table_name() . ' WHERE id = %d', $id));
+        $exists = $wpdb->get_var($wpdb->prepare('SELECT id FROM %i WHERE id = %d', self::table_name(), $id));
         if (!$exists) { return new WP_Error('not_found', 'Registo não encontrado.', array('status' => 404)); }
         $ok = $wpdb->update(self::table_name(), self::insert_values($type, $clean), array('id' => $id));
         if ($ok === false) { return new WP_Error('save_failed', 'Não foi possível atualizar o registo.', array('status' => 500)); }
@@ -295,7 +297,7 @@ final class BVA_Central_Comunicacoes {
         $items = array_values((array) get_option($option, array()));
         if (!in_array($value, $items, true)) { return new WP_Error('not_found', 'Item não encontrado na lista.', array('status' => 404)); }
 
-        $rows = $wpdb->get_col($wpdb->prepare('SELECT record_data FROM ' . self::table_name() . ' WHERE record_type = %s', 'constraint'));
+        $rows = $wpdb->get_col($wpdb->prepare('SELECT record_data FROM %i WHERE record_type = %s', self::table_name(), 'constraint'));
         $field = $type === 'hospital' ? 'hospital' : 'service';
         foreach ($rows as $json) {
             $record = json_decode($json, true);
@@ -330,8 +332,7 @@ final class BVA_Central_Comunicacoes {
         echo '<table class="widefat striped"><thead><tr><th>Utilizador</th><th>Email</th><th>Permissão de edição</th></tr></thead><tbody>';
         foreach ($users as $user) {
             if (user_can($user, 'manage_options')) { continue; }
-            $checked = user_can($user, self::CAPABILITY) ? ' checked' : '';
-            echo '<tr><td>' . esc_html($user->display_name) . '</td><td>' . esc_html($user->user_email) . '</td><td><label><input type="checkbox" name="bva_central_editors[]" value="' . esc_attr($user->ID) . '"' . $checked . '> Pode editar</label></td></tr>';
+            echo '<tr><td>' . esc_html($user->display_name) . '</td><td>' . esc_html($user->user_email) . '</td><td><label><input type="checkbox" name="bva_central_editors[]" value="' . esc_attr($user->ID) . '"' . checked(user_can($user, self::CAPABILITY), true, false) . '> Pode editar</label></td></tr>';
         }
         echo '</tbody></table><p class="description">Os administradores do WordPress podem sempre editar. Esta seleção define os restantes editores.</p><p><button class="button button-primary" type="submit" name="bva_central_save_access" value="1">Guardar permissões de edição</button></p></form></div>';
     }
