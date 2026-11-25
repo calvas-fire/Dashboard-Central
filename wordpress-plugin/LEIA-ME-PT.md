@@ -17,6 +17,7 @@ Todos os utilizadores WordPress autenticados com permissão de leitura podem con
 - Dashboard vertical, agrupamento por hospital, relógio e previsão do tempo na Amadora.
 - Backoffice para constrangimentos, prontidão e avisos.
 - Área **Hospitais e serviços** para gerir os valores dos dropdowns. Nomes iguais ignorando maiúsculas e acentos são recusados; itens associados a constrangimentos têm de ser corrigidos antes de serem removidos.
+- Área **Identidade visual** para carregar o logótipo e personalizar o título, subtítulo e cores do cabeçalho. Aceita imagens PNG, JPG ou WebP até 2 MB.
 - Entrada automática dos constrangimentos uma hora antes do início e remoção da vista à hora de fim.
 - Atualização dos dados através da API REST autenticada do WordPress.
 
