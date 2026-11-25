@@ -1,3 +1,4 @@
+<?php if (!defined('ABSPATH')) { exit; } ?>
 <div id="app" class="bva-central-app">
   <header class="topbar">
     <a class="brand" href="#dashboard" aria-label="Dashboard BVA"><div class="brand-mark">BVA</div><div><strong>Central de Comunicações</strong><span>Bombeiros Voluntários da Amadora</span></div></a>
