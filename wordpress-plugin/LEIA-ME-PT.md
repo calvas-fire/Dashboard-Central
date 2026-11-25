@@ -1,6 +1,8 @@
 # Central de Comunicações BVA
 
-Versão experimental instalável do dashboard. Renderiza o ecrã e o backoffice através do shortcode `[bva_central]` e guarda os registos numa tabela própria da base de dados WordPress. O backoffice inclui também a gestão das listas de hospitais e serviços.
+Versão instalável 0.4.2 do dashboard. Renderiza o ecrã e o backoffice através do shortcode `[bva_central]` e guarda os registos numa tabela própria da base de dados WordPress. O backoffice inclui também a gestão das listas de hospitais e serviços.
+
+A versão 0.4.2 corrige a apresentação de constrangimentos hospitalares e avisos que eram guardados, mas não apareciam nas listas. Uniformiza ainda a tipografia e aumenta a legibilidade da prontidão e da meteorologia.
 
 ## Instalação
 
