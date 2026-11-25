@@ -28,6 +28,26 @@ function esc(value = '') { return String(value).replace(/[&<>"']/g, ch => ({'&':
 function dateTime(value, options = {}) { return new Intl.DateTimeFormat('pt-PT', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', ...options }).format(new Date(value)); }
 function dateShort(value) { return new Intl.DateTimeFormat('pt-PT', { day:'2-digit', month:'short' }).format(new Date(value)); }
 function timeOnly(value) { return new Intl.DateTimeFormat('pt-PT', { hour:'2-digit', minute:'2-digit' }).format(new Date(value)); }
+const dtgMonths = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+function toGroupDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${String(date.getDate()).padStart(2,'0')}${String(date.getHours()).padStart(2,'0')}${String(date.getMinutes()).padStart(2,'0')}${dtgMonths[date.getMonth()]}${String(date.getFullYear()).slice(-2)}`;
+}
+function fromGroupDateTime(value) {
+  const match = String(value || '').trim().match(/^(\d{2})\s*(\d{2})(\d{2})\s*([A-Za-z]{3})\s*(\d{2})$/);
+  if (!match) return '';
+  const [, dayText, hourText, minuteText, monthText, yearText] = match;
+  const month = dtgMonths.indexOf(monthText.toUpperCase());
+  if (month < 0) return '';
+  const year = 2000 + Number(yearText), day = Number(dayText), hour = Number(hourText), minute = Number(minuteText);
+  const date = new Date(year, month, day, hour, minute, 0, 0);
+  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day || date.getHours() !== hour || date.getMinutes() !== minute) return '';
+  return `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}T${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
+}
+function readinessRegion(value) {
+  return ['Área Metropolitana de Lisboa','Sub-região de Lisboa','Comando Sub-Regional de Lisboa'].includes(String(value || '').trim()) ? 'Comando Sub Regional de Lisboa' : value;
+}
 function startVisibility(row, now = Date.now()) { const start = new Date(row.start).getTime(), end = new Date(row.end).getTime(); return end > now && now >= start - oneHour; }
 function current(row, now = Date.now()) { const start = new Date(row.start).getTime(), end = new Date(row.end).getTime(); return now >= start && now < end; }
 function statusFor(row) { const now = Date.now(); if (current(row, now)) return ['Em vigor', 'active']; if (startVisibility(row, now)) return ['A iniciar em breve', 'scheduled']; return new Date(row.end).getTime() <= now ? ['Terminado', 'expired'] : ['Programado', 'scheduled']; }
@@ -50,12 +70,13 @@ function renderDashboard() {
   readiness.dataset.level = activeReadiness ? levelKey(activeReadiness.level) : 'normal';
   if (activeReadiness) {
     const isNormal = levelKey(activeReadiness.level) === 'normal';
-    readiness.innerHTML = `<div class="readiness-symbol">${isNormal ? '✓' : '⌁'}</div><div class="readiness-copy"><p class="eyebrow">${isNormal ? 'Estado de prontidão' : 'Estado de prontidão especial'} · ${esc(activeReadiness.region)}</p><h2>${isNormal ? 'Estado de prontidão normal' : `Prontidão especial — Nível ${levelKey(activeReadiness.level).toUpperCase()}`}</h2><p>Em vigor até ${dateTime(activeReadiness.end)}${activeReadiness.detail ? ` · ${esc(activeReadiness.detail)}` : ''}</p></div><span class="readiness-state">EM VIGOR</span>`;
+    const groupTimes = isNormal ? '' : `<p class="readiness-dtg">Grupo data hora: ${toGroupDateTime(activeReadiness.start)} — ${toGroupDateTime(activeReadiness.end)}</p>`;
+    readiness.innerHTML = `<div class="readiness-symbol">${isNormal ? '✓' : '⌁'}</div><div class="readiness-copy"><p class="eyebrow">${isNormal ? 'Estado de prontidão' : 'Estado de prontidão especial'} · ${esc(readinessRegion(activeReadiness.region))}</p><h2>${isNormal ? 'Estado de prontidão normal' : `Prontidão especial — Nível ${levelKey(activeReadiness.level).toUpperCase()}`}</h2><p class="readiness-period"><strong>Início:</strong> ${dateTime(activeReadiness.start)} <span>·</span> <strong>Fim:</strong> ${dateTime(activeReadiness.end)}${activeReadiness.detail ? ` · ${esc(activeReadiness.detail)}` : ''}</p>${groupTimes}</div><span class="readiness-state">EM VIGOR</span>`;
   } else if (nextReadiness) {
     const nextKey = levelKey(nextReadiness.level);
-    readiness.innerHTML = `<div class="readiness-symbol">◷</div><div class="readiness-copy"><p class="eyebrow">Estado atual · ${esc(nextReadiness.region)}</p><h2>Estado de prontidão normal</h2><p>Próximo: <span class="level-chip level-${nextKey}">${esc(levelLabel(nextReadiness.level))}</span> a partir de ${dateTime(nextReadiness.start)}${nextReadiness.detail ? ` · ${esc(nextReadiness.detail)}` : ''}</p></div><span class="readiness-state">A SEGUIR</span>`;
+    readiness.innerHTML = `<div class="readiness-symbol">◷</div><div class="readiness-copy"><p class="eyebrow">Estado atual · ${esc(readinessRegion(nextReadiness.region))}</p><h2>Estado de prontidão normal</h2><p class="readiness-period">Próximo: <span class="level-chip level-${nextKey}">${esc(levelLabel(nextReadiness.level))}</span> · <strong>Início:</strong> ${dateTime(nextReadiness.start)} · <strong>Fim:</strong> ${dateTime(nextReadiness.end)}</p><p class="readiness-dtg">Grupo data hora: ${toGroupDateTime(nextReadiness.start)} — ${toGroupDateTime(nextReadiness.end)}${nextReadiness.detail ? ` · ${esc(nextReadiness.detail)}` : ''}</p></div><span class="readiness-state">A SEGUIR</span>`;
   } else {
-    readiness.innerHTML = `<div class="readiness-symbol">✓</div><div class="readiness-copy"><p class="eyebrow">Estado de prontidão · Sub-região de Lisboa</p><h2>Estado de prontidão normal</h2><p>Sem estado especial programado neste momento.</p></div><span class="readiness-state">NORMAL</span>`;
+    readiness.innerHTML = `<div class="readiness-symbol">✓</div><div class="readiness-copy"><p class="eyebrow">Estado de prontidão · Comando Sub Regional de Lisboa</p><h2>Estado de prontidão normal</h2><p>Sem estado especial programado neste momento.</p></div><span class="readiness-state">NORMAL</span>`;
   }
 
   const visible = data.constraints.filter(row => startVisibility(row, now)).sort((a,b) => new Date(a.start)-new Date(b.start));
@@ -85,7 +106,7 @@ function renderAdmin() {
   }).join('') || '<div class="empty-state">Ainda não há constrangimentos registados.</div>';
   $('#admin-readiness').innerHTML = data.readiness.slice().sort((a,b) => new Date(a.start)-new Date(b.start)).map(row => {
     const [label, klass] = statusFor(row);
-    return `<article class="admin-row"><div class="admin-row-main"><div class="admin-row-title"><span class="level-swatch level-${levelKey(row.level)}"></span>${esc(levelLabel(row.level))} · ${esc(row.region)}</div><div class="admin-row-meta">${dateTime(row.start)} → ${dateTime(row.end)}${row.detail ? ` · ${esc(row.detail)}` : ''}</div></div><span class="admin-row-status ${klass}">${label}</span><div class="row-actions"><button class="small-button" data-edit="readiness" data-id="${row.id}">Editar</button><button class="small-button delete" data-delete="readiness" data-id="${row.id}">Apagar</button></div></article>`;
+    return `<article class="admin-row"><div class="admin-row-main"><div class="admin-row-title"><span class="level-swatch level-${levelKey(row.level)}"></span>${esc(levelLabel(row.level))} · ${esc(readinessRegion(row.region))}</div><div class="admin-row-meta">${dateTime(row.start)} → ${dateTime(row.end)} · ${toGroupDateTime(row.start)} → ${toGroupDateTime(row.end)}${row.detail ? ` · ${esc(row.detail)}` : ''}</div></div><span class="admin-row-status ${klass}">${label}</span><div class="row-actions"><button class="small-button" data-edit="readiness" data-id="${row.id}">Editar</button><button class="small-button delete" data-delete="readiness" data-id="${row.id}">Apagar</button></div></article>`;
   }).join('') || '<div class="empty-state">Sem estados de prontidão programados.</div>';
   $('#admin-notices').innerHTML = data.notices.map(row => `<article class="admin-row"><div class="admin-row-main"><div class="admin-row-title">${esc(row.title)}</div><div class="admin-row-meta">${esc(row.text)}</div></div><div class="row-actions"><button class="small-button" data-edit="notice" data-id="${row.id}">Editar</button><button class="small-button delete" data-delete="notice" data-id="${row.id}">Apagar</button></div></article>`).join('') || '<div class="empty-state">Sem avisos operacionais.</div>';
   renderCatalog();
@@ -193,6 +214,21 @@ const dialog = $('#record-dialog'), form = $('#record-form');
 let currentType = 'constraint', editId = null;
 function inputValue(name, value = '') { const field = [...form.elements].find(item => item.name === name && !item.disabled); if (field) field.value = value; }
 function toLocalInput(value) { const d = new Date(value); const local = new Date(d.getTime() - d.getTimezoneOffset()*60000); return local.toISOString().slice(0,16); }
+function syncGroupFromNormal(name) {
+  const normal = $(`input[name="${name}"]`, $('#readiness-fields'));
+  const group = $(`input[name="${name}Dtg"]`, $('#readiness-fields'));
+  group.setCustomValidity('');
+  group.value = normal.value ? toGroupDateTime(normal.value) : '';
+}
+function syncNormalFromGroup(name) {
+  const normal = $(`input[name="${name}"]`, $('#readiness-fields'));
+  const group = $(`input[name="${name}Dtg"]`, $('#readiness-fields'));
+  if (!group.value.trim()) { normal.value = ''; group.setCustomValidity(''); return; }
+  const parsed = fromGroupDateTime(group.value);
+  if (!parsed) { group.setCustomValidity('Usa o formato DDHHMMMONYY, por exemplo 252345NOV26.'); return; }
+  group.setCustomValidity(''); normal.value = parsed; group.value = toGroupDateTime(parsed);
+}
+function syncReadinessGroupFields() { syncGroupFromNormal('start'); syncGroupFromNormal('end'); }
 function openRecord(type, row = null) {
   currentType = type; editId = row?.id || null; form.reset();
   $('#constraint-fields').classList.toggle('hidden', type !== 'constraint');
@@ -210,13 +246,14 @@ function openRecord(type, row = null) {
       setChoice('hospital-select','hospital-other',row.hospital);
       setChoice('service-select','service-other',row.service);
       Object.entries(row).forEach(([key,value]) => { if (key === 'start' || key === 'end') inputValue(key,toLocalInput(value)); else if (!['id','hospital','service'].includes(key)) inputValue(key,value); });
-    } else Object.entries(row).forEach(([key,value]) => { if (key === 'start' || key === 'end') inputValue(key,toLocalInput(value)); else if (key === 'level') inputValue(key,levelKey(value)); else if (key !== 'id') inputValue(key,value); });
+    } else Object.entries(row).forEach(([key,value]) => { if (key === 'start' || key === 'end') inputValue(key,toLocalInput(value)); else if (key === 'level') inputValue(key,levelKey(value)); else if (key === 'region') inputValue(key,readinessRegion(value)); else if (key !== 'id') inputValue(key,value); });
   } else if (type !== 'notice') {
     const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     const inAnHour = new Date(now.getTime() + 60 * 60000);
     const end = new Date(inAnHour.getTime() + 4 * 60 * 60000);
     inputValue('start',inAnHour.toISOString().slice(0,16)); inputValue('end',end.toISOString().slice(0,16));
   }
+  if (type === 'readiness') syncReadinessGroupFields();
   dialog.showModal();
 }
 function setChoice(selectId, otherId, value) {
@@ -286,6 +323,13 @@ if (BVACentralConfig.canEdit) {
   $('#add-notice').addEventListener('click',()=>openRecord('notice'));
   $('#hospital-select').addEventListener('change',()=>syncOther('hospital-select','hospital-other'));
   $('#service-select').addEventListener('change',()=>syncOther('service-select','service-other'));
+  ['start','end'].forEach(name => {
+    const normal = $(`input[name="${name}"]`, $('#readiness-fields'));
+    const group = $(`input[name="${name}Dtg"]`, $('#readiness-fields'));
+    normal.addEventListener('input', () => syncGroupFromNormal(name));
+    normal.addEventListener('change', () => syncGroupFromNormal(name));
+    group.addEventListener('input', () => syncNormalFromGroup(name));
+  });
   $('#close-dialog').addEventListener('click',()=>dialog.close());
   $('#cancel-dialog').addEventListener('click',()=>dialog.close());
   $$('.admin-tab').forEach(btn => btn.addEventListener('click',()=>setTab(btn.dataset.tab)));
