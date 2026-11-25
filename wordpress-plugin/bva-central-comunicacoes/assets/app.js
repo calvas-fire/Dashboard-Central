@@ -4,11 +4,13 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
 let data = { constraints: [], readiness: [], notices: [], updatedAt: new Date().toISOString() };
 let catalog = { hospitals: [], services: [] };
+let branding = BVACentralConfig.branding || {};
 async function api(path, options = {}) {
+  const isFormData = options.body instanceof FormData;
   const response = await fetch(BVACentralConfig.restRoot + path, {
     credentials: 'same-origin',
     ...options,
-    headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': BVACentralConfig.nonce, ...(options.headers || {}) }
+    headers: { ...(isFormData ? {} : { 'Content-Type': 'application/json' }), 'X-WP-Nonce': BVACentralConfig.nonce, ...(options.headers || {}) }
   });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body.message || 'Não foi possível comunicar com o WordPress.');
@@ -90,6 +92,68 @@ function renderAdmin() {
 }
 function render() { renderDashboard(); if (BVACentralConfig.canEdit) renderAdmin(); }
 
+function applyBranding(settings) {
+  branding = settings;
+  const app = $('#app');
+  app.style.setProperty('--brand-header-bg', settings.header_bg);
+  app.style.setProperty('--brand-header-text', settings.header_text);
+  app.style.setProperty('--brand-header-muted', settings.header_muted);
+  app.style.setProperty('--brand-accent', settings.accent);
+  $('#brand-title').textContent = settings.title;
+  $('#brand-subtitle').textContent = settings.subtitle;
+  const logoWrap = $('#brand-logo-wrap'), logo = $('#brand-logo');
+  logo.src = settings.logo_url || '';
+  logo.alt = settings.title ? `Logótipo — ${settings.title}` : 'Logótipo';
+  logoWrap.classList.toggle('hidden', !settings.logo_url);
+  if (BVACentralConfig.canEdit && $('#branding-title')) {
+    $('#branding-title').value = settings.title;
+    $('#branding-subtitle').value = settings.subtitle;
+    $('#branding-header-bg').value = settings.header_bg;
+    $('#branding-header-text').value = settings.header_text;
+    $('#branding-header-muted').value = settings.header_muted;
+    $('#branding-accent').value = settings.accent;
+    const preview = $('#branding-logo-preview'), empty = $('#branding-logo-empty');
+    preview.src = settings.logo_url || '';
+    preview.classList.toggle('hidden', !settings.logo_url);
+    empty.classList.toggle('hidden', !!settings.logo_url);
+  }
+}
+async function loadBranding() {
+  try { applyBranding(await api('branding')); }
+  catch (error) { toast(error.message); }
+}
+async function saveBranding(overrides = {}) {
+  const settings = {
+    title: $('#branding-title').value.trim(),
+    subtitle: $('#branding-subtitle').value.trim(),
+    logo_url: branding.logo_url || '',
+    header_bg: $('#branding-header-bg').value,
+    header_text: $('#branding-header-text').value,
+    header_muted: $('#branding-header-muted').value,
+    accent: $('#branding-accent').value,
+    ...overrides
+  };
+  try { applyBranding(await api('branding',{method:'PUT',body:JSON.stringify(settings)})); toast('Identidade visual guardada.'); }
+  catch (error) { toast(error.message); }
+}
+async function uploadBrandLogo() {
+  const file = $('#branding-logo-file').files[0];
+  if (!file) { toast('Escolhe primeiro uma imagem.'); return; }
+  if (file.size > 2 * 1024 * 1024) { toast('A imagem não pode exceder 2 MB.'); return; }
+  const body = new FormData(); body.append('logo',file);
+  try {
+    const settings = await api('branding/logo',{method:'POST',body});
+    branding.logo_url = settings.logo_url;
+    $('#brand-logo').src = settings.logo_url;
+    $('#brand-logo').alt = `Logótipo — ${branding.title || 'Central de Comunicações'}`;
+    $('#brand-logo-wrap').classList.remove('hidden');
+    $('#branding-logo-preview').src = settings.logo_url;
+    $('#branding-logo-preview').classList.remove('hidden');
+    $('#branding-logo-empty').classList.add('hidden');
+    $('#branding-logo-file').value = ''; toast('Logótipo carregado.');
+  } catch (error) { toast(error.message); }
+}
+
 function updateClock() {
   const now = new Date();
   $('#header-clock').textContent = new Intl.DateTimeFormat('pt-PT',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(now);
@@ -107,7 +171,7 @@ function route() {
 }
 function setTab(name) {
   $$('.admin-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === name));
-  ['constraints','readiness','notices','catalog'].forEach(tab => $(`#${tab}-panel`).classList.toggle('hidden', tab !== name));
+  ['constraints','readiness','notices','catalog','branding'].forEach(tab => $(`#${tab}-panel`).classList.toggle('hidden', tab !== name));
 }
 const dialog = $('#record-dialog'), form = $('#record-form');
 let currentType = 'constraint', editId = null;
@@ -211,6 +275,9 @@ if (BVACentralConfig.canEdit) {
   $$('.admin-tab').forEach(btn => btn.addEventListener('click',()=>setTab(btn.dataset.tab)));
   $('#add-hospital-item').addEventListener('click',()=>addCatalogItem('hospital'));
   $('#add-service-item').addEventListener('click',()=>addCatalogItem('service'));
+  $('#save-branding').addEventListener('click',()=>saveBranding());
+  $('#upload-brand-logo').addEventListener('click',uploadBrandLogo);
+  $('#remove-brand-logo').addEventListener('click',()=>saveBranding({logo_url:''}));
   $('#new-hospital').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addCatalogItem('hospital');}});
   $('#new-service').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addCatalogItem('service');}});
 
@@ -251,5 +318,5 @@ document.addEventListener('click', event => {
 });
 }
 window.addEventListener('hashchange',route);
-route(); render(); updateClock(); refreshRecords(); fetchWeather();
+route(); render(); updateClock(); refreshRecords(); loadBranding(); fetchWeather();
 setInterval(updateClock,1000); setInterval(refreshRecords,15000); setInterval(fetchWeather,20*60*1000);
