@@ -4,7 +4,7 @@ Tags: dashboard, emergency, communications
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.0
+Stable tag: 0.4.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,9 @@ Yes. A WordPress account is required to view the dashboard. Editing also require
 Yes. The weather block retrieves the forecast from Open-Meteo.
 
 == Changelog ==
+
+= 0.4.1 =
+* Prefix the dashboard template's branding settings variable to follow WordPress naming conventions.
 
 = 0.4.0 =
 * Add a per-device dashboard text-size control and enlarge the logo upload area for mobile and tablet use.
