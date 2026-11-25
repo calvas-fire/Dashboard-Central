@@ -4,7 +4,7 @@ Tags: dashboard, emergency, communications
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.5
+Stable tag: 0.4.6
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,7 +16,7 @@ BVA Communications Centre provides a dashboard and a restricted back office for 
 
 The dashboard groups hospital constraints by hospital, displays readiness levels and operational notices, and includes a clock and a short local weather forecast. Hospital constraints become visible one hour before their scheduled start and are hidden at their end time.
 
-Hospital constraints are removed from the database two hours after their end time.
+Hospital constraints and readiness records are removed from the database two hours after their end time.
 
 Use the [bva_central] shortcode on a WordPress page. Visitors must be authenticated WordPress users. Administrators and users granted the edit_bva_central capability can manage records and dropdown catalogs.
 
@@ -38,6 +38,10 @@ Yes. A WordPress account is required to view the dashboard. Editing also require
 Yes. The weather block retrieves the forecast from Open-Meteo.
 
 == Changelog ==
+
+= 0.4.6 =
+* Also delete readiness records two hours after their end time and rename the back office tab to State of Special Readiness.
+* Apply DM Sans consistently to plugin, login, and status messages.
 
 = 0.4.5 =
 * Automatically delete hospital constraints from the database two hours after their end time.
