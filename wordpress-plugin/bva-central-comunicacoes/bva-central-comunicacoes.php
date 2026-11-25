@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Central de Comunicações BVA
  * Description: Dashboard autenticado para constrangimentos hospitalares, prontidão especial e avisos operacionais.
- * Version: 0.4.5
+ * Version: 0.4.6
  * Requires at least: 6.2
  * Requires PHP: 8.0
  * Author: Bombeiros Voluntários da Amadora
@@ -14,7 +14,7 @@
 if (!defined('ABSPATH')) { exit; }
 
 final class BVA_Central_Comunicacoes {
-    const VERSION = '0.4.5';
+    const VERSION = '0.4.6';
     const CAPABILITY = 'edit_bva_central';
     const REST_NAMESPACE = 'bva-central/v1';
     const CLEANUP_HOOK = 'bva_central_cleanup_expired_constraints';
@@ -95,9 +95,10 @@ final class BVA_Central_Comunicacoes {
         global $wpdb;
         $cutoff = gmdate('Y-m-d H:i:s', time() - (2 * HOUR_IN_SECONDS));
         $wpdb->query($wpdb->prepare(
-            'DELETE FROM %i WHERE record_type = %s AND ends_at IS NOT NULL AND ends_at <= %s',
+            'DELETE FROM %i WHERE record_type IN (%s, %s) AND ends_at IS NOT NULL AND ends_at <= %s',
             self::table_name(),
             'constraint',
+            'readiness',
             $cutoff
         ));
     }
@@ -112,6 +113,7 @@ final class BVA_Central_Comunicacoes {
     }
 
     public static function shortcode() {
+        wp_enqueue_style('bva-central-app', plugin_dir_url(__FILE__) . 'assets/app.css', array(), self::VERSION);
         if (!is_user_logged_in()) {
             $login = wp_login_form(array(
                 'echo' => false,
@@ -121,7 +123,6 @@ final class BVA_Central_Comunicacoes {
             return '<section class="bva-central-login"><h2>Central de Comunicações</h2><p>Inicia sessão com a tua conta WordPress para consultar o dashboard.</p>' . $login . '</section>';
         }
 
-        wp_enqueue_style('bva-central-app', plugin_dir_url(__FILE__) . 'assets/app.css', array(), self::VERSION);
         wp_enqueue_script('bva-central-app', plugin_dir_url(__FILE__) . 'assets/app.js', array(), self::VERSION, true);
         wp_localize_script('bva-central-app', 'BVACentralConfig', array(
             'restRoot' => esc_url_raw(rest_url(self::REST_NAMESPACE . '/')),
