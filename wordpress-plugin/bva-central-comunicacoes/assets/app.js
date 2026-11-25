@@ -260,7 +260,7 @@ function openRecord(type, row = null) {
     $$('select', $(`#${selector}`)).forEach(field => { field.disabled = section !== type; });
   });
   if (type === 'constraint') { syncOther('hospital-select','hospital-other'); syncOther('service-select','service-other'); }
-  $('#dialog-title').textContent = type === 'constraint' ? 'Constrangimento hospitalar' : type === 'readiness' ? 'Estado de prontidão' : 'Aviso operacional';
+  $('#dialog-title').textContent = type === 'constraint' ? 'Constrangimento hospitalar' : type === 'readiness' ? 'Estado de prontidão especial' : 'Aviso operacional';
   $('#dialog-eyebrow').textContent = row ? 'Editar registo' : 'Novo registo';
   if (row) {
     if (type === 'constraint') {
