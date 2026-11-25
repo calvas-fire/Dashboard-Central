@@ -1,8 +1,8 @@
 # Central de Comunicações BVA
 
-Versão instalável 0.4.4 do dashboard. Renderiza o ecrã e o backoffice através do shortcode `[bva_central]` e guarda os registos numa tabela própria da base de dados WordPress. O backoffice inclui também a gestão das listas de hospitais e serviços.
+Versão instalável 0.4.5 do dashboard. Renderiza o ecrã e o backoffice através do shortcode `[bva_central]` e guarda os registos numa tabela própria da base de dados WordPress. O backoffice inclui também a gestão das listas de hospitais e serviços.
 
-A versão 0.4.4 corrige a sincronização dos campos de data/hora e grupo data hora no backoffice: basta preencher um dos formatos por data; o outro é atualizado automaticamente e validado ao guardar.
+A versão 0.4.5 elimina automaticamente cada constrangimento hospitalar da base de dados duas horas depois da hora de fim. A versão 0.4.4 corrige a sincronização dos campos de data/hora e grupo data hora no backoffice.
 
 A versão 0.4.3 identifica o Comando Sub Regional de Lisboa no estado de prontidão e apresenta os formatos normal e grupo data hora durante a validade do estado.
 
