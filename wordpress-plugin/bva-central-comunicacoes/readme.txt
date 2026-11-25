@@ -4,7 +4,7 @@ Tags: dashboard, emergency, communications
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.1
+Stable tag: 0.4.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,10 @@ Yes. A WordPress account is required to view the dashboard. Editing also require
 Yes. The weather block retrieves the forecast from Open-Meteo.
 
 == Changelog ==
+
+= 0.4.2 =
+* Fix record type mapping so saved hospital constraints and operational notices appear in the dashboard and back office.
+* Use one sans-serif typeface throughout and improve weather and readiness readability and contrast.
 
 = 0.4.1 =
 * Prefix the dashboard template's branding settings variable to follow WordPress naming conventions.
