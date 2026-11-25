@@ -14,6 +14,30 @@
 #app .catalog-list li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 9px;border:1px solid #edf0f4;border-radius:7px;font-size:calc(11px * var(--bva-text-scale, 1))}
 #app .catalog-list li span{min-width:0;overflow-wrap:anywhere}
 #app .catalog-list .catalog-empty{justify-content:center;color:#8290a0;border-style:dashed}
+
+/* Uniformiza a tipografia e reforça a leitura dos dados operacionais. */
+#app,#app *{font-family:'DM Sans',Arial,sans-serif!important}
+#app .readiness-card{min-height:126px;padding:24px 28px;gap:20px}
+#app .readiness-symbol{width:54px;height:54px;flex:none;font-size:26px}
+#app .readiness-copy .eyebrow{font-size:calc(13px * var(--bva-text-scale, 1));letter-spacing:1px}
+#app .readiness-copy h2{font-size:clamp(24px,calc(30px * var(--bva-text-scale, 1)),40px);line-height:1.18;font-weight:800}
+#app .readiness-copy p{font-size:calc(17px * var(--bva-text-scale, 1));line-height:1.4;font-weight:600}
+#app .readiness-state{font-size:calc(15px * var(--bva-text-scale, 1));font-weight:800;padding:10px 15px}
+#app .readiness-card[data-level="normal"],#app .readiness-card[data-level="i"],#app .readiness-card[data-level="ii"]{color:#111;background:#fff}
+#app .readiness-card[data-level="i"]{background:#e3e3e3}
+#app .readiness-card[data-level="ii"]{background:#aaa}
+#app .readiness-card[data-level="iii"]{color:#fff;background:#505050}
+#app .readiness-card[data-level="iv"]{color:#fff;background:#111}
+#app .readiness-card[data-level="normal"] .readiness-copy .eyebrow,#app .readiness-card[data-level="i"] .readiness-copy .eyebrow,#app .readiness-card[data-level="ii"] .readiness-copy .eyebrow{color:#292929}
+#app .readiness-card[data-level="iii"] .readiness-copy .eyebrow,#app .readiness-card[data-level="iv"] .readiness-copy .eyebrow{color:#fff}
+#app .readiness-card[data-level="normal"] .readiness-copy p:not(.eyebrow),#app .readiness-card[data-level="i"] .readiness-copy p:not(.eyebrow),#app .readiness-card[data-level="ii"] .readiness-copy p:not(.eyebrow){color:#171717}
+#app .readiness-card[data-level="iii"] .readiness-copy p:not(.eyebrow),#app .readiness-card[data-level="iv"] .readiness-copy p:not(.eyebrow){color:#fff}
+#app .readiness-card[data-level="normal"] .readiness-state,#app .readiness-card[data-level="i"] .readiness-state,#app .readiness-card[data-level="ii"] .readiness-state{color:#111;background:#ffffffa8;border-color:#1115}
+#app .readiness-card[data-level="iii"] .readiness-state,#app .readiness-card[data-level="iv"] .readiness-state{color:#fff;background:#ffffff24;border-color:#ffffff70}
+#app .weather-hour{gap:6px;padding:5px 4px}
+#app .weather-hour-label{font-size:calc(12px * var(--bva-text-scale, 1));font-weight:800;color:#26364a;letter-spacing:.2px}
+#app .weather-rain,#app .weather-wind{font-size:calc(13px * var(--bva-text-scale, 1));font-weight:700;color:#26364a;line-height:1.35}
+@media(max-width:620px){#app .readiness-card{min-height:0;padding:18px 15px;gap:12px}#app .readiness-symbol{width:42px;height:42px;font-size:21px}#app .readiness-copy h2{font-size:clamp(21px,calc(25px * var(--bva-text-scale, 1)),32px)}#app .readiness-copy p{font-size:calc(15px * var(--bva-text-scale, 1))}#app .readiness-state{font-size:calc(12px * var(--bva-text-scale, 1));padding:8px 10px}#app .weather-grid{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:10px}#app .weather-hour:nth-child(2){border-right:0}#app .weather-hour-label{font-size:calc(12px * var(--bva-text-scale, 1))}#app .weather-rain,#app .weather-wind{font-size:calc(12px * var(--bva-text-scale, 1))}}
 @media(max-width:700px){#app .catalog-columns{grid-template-columns:1fr}#app .catalog-add{flex-direction:column}#app .catalog-add .button{align-self:flex-start}}
 #app .topbar{background:var(--brand-header-bg);color:var(--brand-header-text)}
 #app .brand-mark{padding:3px;overflow:hidden}
