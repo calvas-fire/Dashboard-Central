@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Central de Comunicações BVA
  * Description: Dashboard autenticado para constrangimentos hospitalares, prontidão especial e avisos operacionais.
- * Version: 0.2.1
+ * Version: 0.3.0
  * Requires at least: 6.2
  * Requires PHP: 8.0
  * Author: Bombeiros Voluntários da Amadora
@@ -14,7 +14,7 @@
 if (!defined('ABSPATH')) { exit; }
 
 final class BVA_Central_Comunicacoes {
-    const VERSION = '0.2.1';
+    const VERSION = '0.3.0';
     const CAPABILITY = 'edit_bva_central';
     const REST_NAMESPACE = 'bva-central/v1';
 
@@ -94,6 +94,7 @@ final class BVA_Central_Comunicacoes {
             'nonce' => wp_create_nonce('wp_rest'),
             'canEdit' => self::can_edit(),
             'version' => self::VERSION,
+            'branding' => self::branding_settings(),
         ));
 
         ob_start();
@@ -143,6 +144,23 @@ final class BVA_Central_Comunicacoes {
             'callback' => array(__CLASS__, 'delete_catalog_item'),
             'permission_callback' => array(__CLASS__, 'can_edit_permission'),
         ));
+        register_rest_route(self::REST_NAMESPACE, '/branding', array(
+            array(
+                'methods' => WP_REST_Server::READABLE,
+                'callback' => array(__CLASS__, 'get_branding'),
+                'permission_callback' => array(__CLASS__, 'can_read'),
+            ),
+            array(
+                'methods' => WP_REST_Server::EDITABLE,
+                'callback' => array(__CLASS__, 'save_branding'),
+                'permission_callback' => array(__CLASS__, 'can_edit_permission'),
+            ),
+        ));
+        register_rest_route(self::REST_NAMESPACE, '/branding/logo', array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => array(__CLASS__, 'upload_brand_logo'),
+            'permission_callback' => array(__CLASS__, 'can_edit_permission'),
+        ));
     }
 
     public static function can_read() {
@@ -151,6 +169,77 @@ final class BVA_Central_Comunicacoes {
 
     public static function can_edit_permission() {
         return self::can_edit();
+    }
+
+    public static function branding_settings() {
+        $defaults = array(
+            'title' => 'Central de Comunicações',
+            'subtitle' => 'Bombeiros Voluntários da Amadora',
+            'logo_url' => '',
+            'header_bg' => '#0c1c30',
+            'header_text' => '#ffffff',
+            'header_muted' => '#b6c2d0',
+            'accent' => '#2157c6',
+        );
+        $saved = (array) get_option('bva_central_branding', array());
+        $settings = array_merge($defaults, $saved);
+        foreach (array('header_bg', 'header_text', 'header_muted', 'accent') as $key) {
+            if (!preg_match('/^#[0-9a-fA-F]{6}$/', (string) $settings[$key])) { $settings[$key] = $defaults[$key]; }
+        }
+        $settings['title'] = sanitize_text_field($settings['title']);
+        $settings['subtitle'] = sanitize_text_field($settings['subtitle']);
+        $settings['logo_url'] = esc_url_raw($settings['logo_url']);
+        return $settings;
+    }
+
+    public static function get_branding() {
+        return rest_ensure_response(self::branding_settings());
+    }
+
+    public static function save_branding($request) {
+        $input = $request->get_json_params();
+        $settings = self::branding_settings();
+        $settings['title'] = sanitize_text_field($input['title'] ?? $settings['title']);
+        $settings['subtitle'] = sanitize_text_field($input['subtitle'] ?? $settings['subtitle']);
+        $settings['logo_url'] = esc_url_raw($input['logo_url'] ?? $settings['logo_url']);
+        foreach (array('header_bg', 'header_text', 'header_muted', 'accent') as $key) {
+            $value = sanitize_hex_color($input[$key] ?? $settings[$key]);
+            if (!$value) { return new WP_Error('invalid_brand_color', 'Usa uma cor hexadecimal válida.', array('status' => 400)); }
+            $settings[$key] = $value;
+        }
+        if ($settings['title'] === '') { return new WP_Error('invalid_brand_title', 'Indica um título para o cabeçalho.', array('status' => 400)); }
+        update_option('bva_central_branding', $settings, false);
+        return rest_ensure_response($settings);
+    }
+
+    public static function upload_brand_logo($request) {
+        $files = $request->get_file_params();
+        $file = $files['logo'] ?? null;
+        if (!$file || !empty($file['error'])) {
+            return new WP_Error('logo_upload_failed', 'Seleciona um ficheiro de imagem válido.', array('status' => 400));
+        }
+        if ((int) $file['size'] > 2 * MB_IN_BYTES) {
+            return new WP_Error('logo_too_large', 'O logótipo não pode exceder 2 MB.', array('status' => 413));
+        }
+        $allowed_mimes = array('jpg|jpeg|jpe' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp');
+        $file_type = wp_check_filetype_and_ext($file['tmp_name'], $file['name'], $allowed_mimes);
+        $image = @getimagesize($file['tmp_name']);
+        if (empty($file_type['type']) || empty($image) || !in_array($file_type['type'], array_values($allowed_mimes), true)) {
+            return new WP_Error('invalid_logo_type', 'Usa uma imagem PNG, JPG ou WebP.', array('status' => 400));
+        }
+        if ((int) $image[0] > 4000 || (int) $image[1] > 4000) {
+            return new WP_Error('logo_dimensions_too_large', 'A imagem do logótipo não pode exceder 4000 px por lado.', array('status' => 400));
+        }
+
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        $upload = wp_handle_upload($file, array('test_form' => false, 'mimes' => $allowed_mimes));
+        if (!empty($upload['error'])) {
+            return new WP_Error('logo_upload_failed', sanitize_text_field($upload['error']), array('status' => 500));
+        }
+        $settings = self::branding_settings();
+        $settings['logo_url'] = esc_url_raw($upload['url']);
+        update_option('bva_central_branding', $settings, false);
+        return rest_ensure_response($settings);
     }
 
     public static function get_records() {
