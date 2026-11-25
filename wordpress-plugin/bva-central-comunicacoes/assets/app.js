@@ -102,7 +102,8 @@ function applyBranding(settings) {
   $('#brand-title').textContent = settings.title;
   $('#brand-subtitle').textContent = settings.subtitle;
   const logoWrap = $('#brand-logo-wrap'), logo = $('#brand-logo');
-  logo.src = settings.logo_url || '';
+  if (settings.logo_url) logo.src = settings.logo_url;
+  else logo.removeAttribute('src');
   logo.alt = settings.title ? `Logótipo — ${settings.title}` : 'Logótipo';
   logoWrap.classList.toggle('hidden', !settings.logo_url);
   if (BVACentralConfig.canEdit && $('#branding-title')) {
@@ -113,7 +114,8 @@ function applyBranding(settings) {
     $('#branding-header-muted').value = settings.header_muted;
     $('#branding-accent').value = settings.accent;
     const preview = $('#branding-logo-preview'), empty = $('#branding-logo-empty');
-    preview.src = settings.logo_url || '';
+    if (settings.logo_url) preview.src = settings.logo_url;
+    else preview.removeAttribute('src');
     preview.classList.toggle('hidden', !settings.logo_url);
     empty.classList.toggle('hidden', !!settings.logo_url);
   }
