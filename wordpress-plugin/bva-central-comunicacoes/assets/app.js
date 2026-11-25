@@ -155,6 +155,20 @@ async function uploadBrandLogo() {
     $('#branding-logo-file').value = ''; toast('Logótipo carregado.');
   } catch (error) { toast(error.message); }
 }
+function setTextScale(value, persist = true) {
+  const allowed = ['1','1.15','1.3'];
+  const scale = allowed.includes(String(value)) ? String(value) : '1';
+  $('#app').style.setProperty('--bva-text-scale', scale);
+  const selector = $('#font-scale');
+  if (selector) selector.value = scale;
+  if (persist) { try { localStorage.setItem('bva-central-text-scale', scale); } catch {} }
+}
+function initTextScale() {
+  let saved = '1';
+  try { saved = localStorage.getItem('bva-central-text-scale') || '1'; } catch {}
+  setTextScale(saved, false);
+  $('#font-scale').addEventListener('change', event => setTextScale(event.target.value));
+}
 
 function updateClock() {
   const now = new Date();
@@ -320,5 +334,5 @@ document.addEventListener('click', event => {
 });
 }
 window.addEventListener('hashchange',route);
-route(); render(); updateClock(); refreshRecords(); loadBranding(); fetchWeather();
+initTextScale(); route(); render(); updateClock(); refreshRecords(); loadBranding(); fetchWeather();
 setInterval(updateClock,1000); setInterval(refreshRecords,15000); setInterval(fetchWeather,20*60*1000);
