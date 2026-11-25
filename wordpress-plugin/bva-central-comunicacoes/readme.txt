@@ -1,4 +1,4 @@
-=== BVA Communications Centre ===
+=== Central de Comunicações BVA ===
 Contributors: calvas-fire
 Tags: dashboard, emergency, communications
 Requires at least: 6.2
