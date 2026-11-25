@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Central de Comunicações BVA
  * Description: Dashboard autenticado para constrangimentos hospitalares, prontidão especial e avisos operacionais.
- * Version: 0.4.1
+ * Version: 0.4.2
  * Requires at least: 6.2
  * Requires PHP: 8.0
  * Author: Bombeiros Voluntários da Amadora
@@ -14,7 +14,7 @@
 if (!defined('ABSPATH')) { exit; }
 
 final class BVA_Central_Comunicacoes {
-    const VERSION = '0.4.1';
+    const VERSION = '0.4.2';
     const CAPABILITY = 'edit_bva_central';
     const REST_NAMESPACE = 'bva-central/v1';
 
@@ -246,10 +246,12 @@ final class BVA_Central_Comunicacoes {
         global $wpdb;
         $items = $wpdb->get_results($wpdb->prepare('SELECT id, record_type, record_data, modified_at FROM %i ORDER BY starts_at ASC, id ASC', self::table_name()), ARRAY_A);
         $records = array('constraints' => array(), 'readiness' => array(), 'notices' => array(), 'updatedAt' => null);
+        $buckets = array('constraint' => 'constraints', 'readiness' => 'readiness', 'notice' => 'notices');
         $latest_timestamp = 0;
         foreach ($items as $item) {
-            $bucket = $item['record_type'];
-            if (!isset($records[$bucket])) { continue; }
+            $record_type = $item['record_type'];
+            if (!isset($buckets[$record_type])) { continue; }
+            $bucket = $buckets[$record_type];
             $row = json_decode($item['record_data'], true);
             if (!is_array($row)) { continue; }
             $row['id'] = (string) $item['id'];
