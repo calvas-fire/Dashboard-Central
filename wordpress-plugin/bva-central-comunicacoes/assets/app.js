@@ -212,23 +212,44 @@ function setTab(name) {
 }
 const dialog = $('#record-dialog'), form = $('#record-form');
 let currentType = 'constraint', editId = null;
+let readinessDateSource = {start:'normal',end:'normal'};
 function inputValue(name, value = '') { const field = [...form.elements].find(item => item.name === name && !item.disabled); if (field) field.value = value; }
 function toLocalInput(value) { const d = new Date(value); const local = new Date(d.getTime() - d.getTimezoneOffset()*60000); return local.toISOString().slice(0,16); }
 function syncGroupFromNormal(name) {
   const normal = $(`input[name="${name}"]`, $('#readiness-fields'));
   const group = $(`input[name="${name}Dtg"]`, $('#readiness-fields'));
-  group.setCustomValidity('');
   group.value = normal.value ? toGroupDateTime(normal.value) : '';
 }
 function syncNormalFromGroup(name) {
   const normal = $(`input[name="${name}"]`, $('#readiness-fields'));
   const group = $(`input[name="${name}Dtg"]`, $('#readiness-fields'));
-  if (!group.value.trim()) { normal.value = ''; group.setCustomValidity(''); return; }
+  if (!group.value.trim()) { normal.value = ''; return; }
   const parsed = fromGroupDateTime(group.value);
-  if (!parsed) { group.setCustomValidity('Usa o formato DDHHMMMONYY, por exemplo 252345NOV26.'); return; }
-  group.setCustomValidity(''); normal.value = parsed; group.value = toGroupDateTime(parsed);
+  if (!parsed) return;
+  normal.value = parsed; group.value = toGroupDateTime(parsed);
 }
 function syncReadinessGroupFields() { syncGroupFromNormal('start'); syncGroupFromNormal('end'); }
+function prepareReadinessDates() {
+  for (const name of ['start','end']) {
+    const normal = $(`input[name="${name}"]`, $('#readiness-fields'));
+    const group = $(`input[name="${name}Dtg"]`, $('#readiness-fields'));
+    const source = readinessDateSource[name] || (group.value.trim() ? 'group' : 'normal');
+    if (source === 'group' || (!normal.value && group.value.trim())) {
+      const parsed = fromGroupDateTime(group.value);
+      if (!parsed) { toast(`Indica ${name === 'start' ? 'o início' : 'o fim'} no formato DDHHMMMONYY, por exemplo 252345NOV26.`); group.focus(); return false; }
+      normal.value = parsed; group.value = toGroupDateTime(parsed);
+    } else if (normal.value) {
+      group.value = toGroupDateTime(normal.value);
+    } else {
+      toast(`Indica ${name === 'start' ? 'a data/hora ou grupo data hora de início' : 'a data/hora ou grupo data hora de fim'}.`);
+      group.focus(); return false;
+    }
+  }
+  const start = $(`input[name="start"]`, $('#readiness-fields')).value;
+  const end = $(`input[name="end"]`, $('#readiness-fields')).value;
+  if (new Date(end) <= new Date(start)) { toast('A hora de fim tem de ser posterior ao início.'); return false; }
+  return true;
+}
 function openRecord(type, row = null) {
   currentType = type; editId = row?.id || null; form.reset();
   $('#constraint-fields').classList.toggle('hidden', type !== 'constraint');
@@ -253,7 +274,7 @@ function openRecord(type, row = null) {
     const end = new Date(inAnHour.getTime() + 4 * 60 * 60000);
     inputValue('start',inAnHour.toISOString().slice(0,16)); inputValue('end',end.toISOString().slice(0,16));
   }
-  if (type === 'readiness') syncReadinessGroupFields();
+  if (type === 'readiness') { readinessDateSource = {start:'normal',end:'normal'}; syncReadinessGroupFields(); }
   dialog.showModal();
 }
 function setChoice(selectId, otherId, value) {
@@ -326,9 +347,9 @@ if (BVACentralConfig.canEdit) {
   ['start','end'].forEach(name => {
     const normal = $(`input[name="${name}"]`, $('#readiness-fields'));
     const group = $(`input[name="${name}Dtg"]`, $('#readiness-fields'));
-    normal.addEventListener('input', () => syncGroupFromNormal(name));
-    normal.addEventListener('change', () => syncGroupFromNormal(name));
-    group.addEventListener('input', () => syncNormalFromGroup(name));
+    normal.addEventListener('input', () => { readinessDateSource[name] = 'normal'; syncGroupFromNormal(name); });
+    normal.addEventListener('change', () => { readinessDateSource[name] = 'normal'; syncGroupFromNormal(name); });
+    group.addEventListener('input', () => { readinessDateSource[name] = 'group'; syncNormalFromGroup(name); });
   });
   $('#close-dialog').addEventListener('click',()=>dialog.close());
   $('#cancel-dialog').addEventListener('click',()=>dialog.close());
@@ -343,6 +364,7 @@ if (BVACentralConfig.canEdit) {
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
+  if (currentType === 'readiness' && !prepareReadinessDates()) return;
   const fd = new FormData(form), row = {};
   for (const [key,value] of fd.entries()) if (key) row[key] = value;
   if (currentType === 'constraint') {
