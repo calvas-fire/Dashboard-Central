@@ -4,7 +4,7 @@ Tags: dashboard, emergency, communications
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.3
+Stable tag: 0.4.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,9 @@ Yes. A WordPress account is required to view the dashboard. Editing also require
 Yes. The weather block retrieves the forecast from Open-Meteo.
 
 == Changelog ==
+
+= 0.4.4 =
+* Make group date-time and normal date/time fields optional alternatives, validate and synchronize them on save, and show group date-time first.
 
 = 0.4.3 =
 * Rename the readiness command to Comando Sub Regional de Lisboa.
