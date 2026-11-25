@@ -38,6 +38,16 @@
 #app .weather-hour-label{font-size:calc(12px * var(--bva-text-scale, 1));font-weight:800;color:#26364a;letter-spacing:.2px}
 #app .weather-rain,#app .weather-wind{font-size:calc(13px * var(--bva-text-scale, 1));font-weight:700;color:#26364a;line-height:1.35}
 @media(max-width:620px){#app .readiness-card{min-height:0;padding:18px 15px;gap:12px}#app .readiness-symbol{width:42px;height:42px;font-size:21px}#app .readiness-copy h2{font-size:clamp(21px,calc(25px * var(--bva-text-scale, 1)),32px)}#app .readiness-copy p{font-size:calc(15px * var(--bva-text-scale, 1))}#app .readiness-state{font-size:calc(12px * var(--bva-text-scale, 1));padding:8px 10px}#app .weather-grid{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:10px}#app .weather-hour:nth-child(2){border-right:0}#app .weather-hour-label{font-size:calc(12px * var(--bva-text-scale, 1))}#app .weather-rain,#app .weather-wind{font-size:calc(12px * var(--bva-text-scale, 1))}}
+#app .readiness-datetime-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#app .readiness-datetime{min-width:0;margin:0;padding:12px;border:1px solid #dce3eb;border-radius:9px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#app .readiness-datetime legend{padding:0 5px;color:#26364a;font-size:calc(12px * var(--bva-text-scale, 1));font-weight:800}
+#app .readiness-datetime label{min-width:0;display:grid;gap:5px;color:#53647a;font-size:calc(11px * var(--bva-text-scale, 1));font-weight:700}
+#app .readiness-datetime input{width:100%;min-width:0;border:1px solid #dce3eb;border-radius:7px;background:#fff;color:#24364c;padding:10px 9px;font-size:calc(12px * var(--bva-text-scale, 1))}
+#app .dtg-help{margin:0;color:#53647a;font-size:calc(12px * var(--bva-text-scale, 1));line-height:1.45}
+#app .readiness-copy .readiness-period{margin-top:10px;font-size:calc(16px * var(--bva-text-scale, 1));font-weight:600;line-height:1.5}
+#app .readiness-copy .readiness-dtg{margin-top:5px;font-size:calc(19px * var(--bva-text-scale, 1));font-weight:800;letter-spacing:.35px;line-height:1.35;font-variant-numeric:tabular-nums}
+#app .admin-row-meta{line-height:1.5}
+@media(max-width:620px){#app .readiness-datetime-grid{grid-template-columns:1fr}#app .readiness-datetime{grid-template-columns:1fr 1fr}#app .readiness-copy .readiness-period{font-size:calc(14px * var(--bva-text-scale, 1))}#app .readiness-copy .readiness-dtg{font-size:calc(16px * var(--bva-text-scale, 1))}}
 @media(max-width:700px){#app .catalog-columns{grid-template-columns:1fr}#app .catalog-add{flex-direction:column}#app .catalog-add .button{align-self:flex-start}}
 #app .topbar{background:var(--brand-header-bg);color:var(--brand-header-text)}
 #app .brand-mark{padding:3px;overflow:hidden}
