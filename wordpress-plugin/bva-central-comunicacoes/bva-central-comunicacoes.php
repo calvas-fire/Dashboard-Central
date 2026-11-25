@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Central de Comunicações BVA
  * Description: Dashboard autenticado para constrangimentos hospitalares, prontidão especial e avisos operacionais.
- * Version: 0.4.4
+ * Version: 0.4.5
  * Requires at least: 6.2
  * Requires PHP: 8.0
  * Author: Bombeiros Voluntários da Amadora
@@ -14,14 +14,18 @@
 if (!defined('ABSPATH')) { exit; }
 
 final class BVA_Central_Comunicacoes {
-    const VERSION = '0.4.4';
+    const VERSION = '0.4.5';
     const CAPABILITY = 'edit_bva_central';
     const REST_NAMESPACE = 'bva-central/v1';
+    const CLEANUP_HOOK = 'bva_central_cleanup_expired_constraints';
 
     public static function init() {
         add_shortcode('bva_central', array(__CLASS__, 'shortcode'));
         add_action('rest_api_init', array(__CLASS__, 'register_routes'));
         add_action('admin_menu', array(__CLASS__, 'access_menu'));
+        add_filter('cron_schedules', array(__CLASS__, 'cron_schedules'));
+        add_action('init', array(__CLASS__, 'ensure_cleanup_schedule'));
+        add_action(self::CLEANUP_HOOK, array(__CLASS__, 'cleanup_expired_constraints'));
     }
 
     public static function activate() {
@@ -65,6 +69,36 @@ final class BVA_Central_Comunicacoes {
             'Urgência de Ortopedia',
             'Serviço de Imagiologia',
             'Pediatria',
+        ));
+        self::ensure_cleanup_schedule();
+    }
+
+    public static function deactivate() {
+        wp_clear_scheduled_hook(self::CLEANUP_HOOK);
+    }
+
+    public static function cron_schedules($schedules) {
+        $schedules['bva_central_five_minutes'] = array(
+            'interval' => 5 * MINUTE_IN_SECONDS,
+            'display' => 'A cada cinco minutos — Central BVA',
+        );
+        return $schedules;
+    }
+
+    public static function ensure_cleanup_schedule() {
+        if (!wp_next_scheduled(self::CLEANUP_HOOK)) {
+            wp_schedule_event(time() + MINUTE_IN_SECONDS, 'bva_central_five_minutes', self::CLEANUP_HOOK);
+        }
+    }
+
+    public static function cleanup_expired_constraints() {
+        global $wpdb;
+        $cutoff = gmdate('Y-m-d H:i:s', time() - (2 * HOUR_IN_SECONDS));
+        $wpdb->query($wpdb->prepare(
+            'DELETE FROM %i WHERE record_type = %s AND ends_at IS NOT NULL AND ends_at <= %s',
+            self::table_name(),
+            'constraint',
+            $cutoff
         ));
     }
 
@@ -244,6 +278,7 @@ final class BVA_Central_Comunicacoes {
 
     public static function get_records() {
         global $wpdb;
+        self::cleanup_expired_constraints();
         $items = $wpdb->get_results($wpdb->prepare('SELECT id, record_type, record_data, modified_at FROM %i ORDER BY starts_at ASC, id ASC', self::table_name()), ARRAY_A);
         $records = array('constraints' => array(), 'readiness' => array(), 'notices' => array(), 'updatedAt' => null);
         $buckets = array('constraint' => 'constraints', 'readiness' => 'readiness', 'notice' => 'notices');
@@ -430,4 +465,5 @@ final class BVA_Central_Comunicacoes {
 }
 
 register_activation_hook(__FILE__, array('BVA_Central_Comunicacoes', 'activate'));
+register_deactivation_hook(__FILE__, array('BVA_Central_Comunicacoes', 'deactivate'));
 BVA_Central_Comunicacoes::init();
